@@ -31,7 +31,8 @@
 # $Maintainer: Hannes Röst $
 # $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+## 3.15 for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
@@ -603,14 +604,14 @@ if (APPLE)
  list(APPEND PY_RPATH "@loader_path/")
 endif()
 
-if (LINUX) # see https://github.com/cython/cython/issues/3380
+# actually on my Mac I didnt need that but on GH actions it fails
+if (LINUX OR APPLE) # see https://github.com/cython/cython/issues/3380
   set(VIS_PRESET "default")
   set(INLINES_HIDDEN 0)
 else()
   set(VIS_PRESET "hidden")
   set(INLINES_HIDDEN 1)
 endif()
-
 
 if(LINUX OR APPLE)
   set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
@@ -678,7 +679,7 @@ endif()
 IF(LINUX AND PY_NO_OUTPUT)
     add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms . 2> /dev/null
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms . 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
             COMMENT "Packaging pyopenms wheel."
@@ -698,7 +699,7 @@ ELSE()
     ELSE()
         add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
